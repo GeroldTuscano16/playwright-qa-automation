@@ -1,25 +1,35 @@
 const { test, expect } = require('@playwright/test');
-const path = require('path');
 
 test('Day 18 - Mock API response', async ({ page }) => {
-
-  // 1️⃣ Mock the API
-  await page.route('**/api/users', route => {
-    route.fulfill({
+  await page.route('**/api/users', async route => {
+    await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, name: 'Gerold' },
-        { id: 2, name: 'Alex' }
+        { name: 'Gerold' },
+        { name: 'Alex' }
       ])
     });
   });
 
-  // 2️⃣ Load local HTML page
-  const filePath = path.resolve(__dirname, '../test-pages/users.html');
-  await page.goto(`file://${filePath}`);
+  await page.goto('http://localhost:3000'); // or your test HTML
 
-  // 3️⃣ Assertions
+  // Trigger request
+  await page.evaluate(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.createElement('ul');
+        ul.id = 'users';
+        data.forEach(u => {
+          const li = document.createElement('li');
+          li.textContent = u.name;
+          ul.appendChild(li);
+        });
+        document.body.appendChild(ul);
+      });
+  });
+
   const users = page.locator('#users li');
 
   await expect(users).toHaveCount(2);

@@ -1,8 +1,8 @@
 class DuckPage {
   constructor(page) {
     this.page = page;
-    this.searchBox = page.locator('input[name="q"]');
-    this.results = page.locator('#links h2.result__title a');
+    this.searchInput = page.locator('input[name="q"]');
+    this.results = page.locator('article h2 a');
   }
 
   async open() {
@@ -10,33 +10,18 @@ class DuckPage {
   }
 
   async search(query) {
-  await this.page.goto('https://duckduckgo.com/', { waitUntil: 'domcontentloaded' });
+    await this.searchInput.fill(query);
+    await this.searchInput.press('Enter');
 
-  // Handle cookie popup if present
-  const acceptBtn = this.page.locator('button:has-text("Accept")');
-  if (await acceptBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await acceptBtn.click();
+    // Wait for results page navigation
+    await this.page.waitForURL(/duckduckgo\.com\/\?q=/);
+
+    // Wait for results to appear
+    await this.results.first().waitFor({ state: 'visible' });
   }
-
-  await this.searchInput.fill(query);
-  await this.searchInput.press('Enter');
-
-  // More reliable wait
-  await this.page.waitForLoadState('networkidle');
-
-  await this.results.first().waitFor({
-    state: 'visible',
-    timeout: 45000,
-  });
-}
-
 
   async getFirstResultText() {
     return await this.results.first().innerText();
-  }
-
-  async getFirstResultURL() {
-    return await this.results.first().getAttribute('href');
   }
 }
 
