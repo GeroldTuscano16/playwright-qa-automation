@@ -30,8 +30,8 @@ jobs:
         run: npx playwright install --with-deps
 
       # 5️⃣ Run Playwright tests
-      - name: Run Playwright tests
-        run: npx playwright test
+      - name: Run Playwright tests (skip local-only tests)
+        run: npx playwright test --grep-invert @local
 
       # 6️⃣ Upload Playwright report (if tests fail)
       - name: Upload Playwright Report

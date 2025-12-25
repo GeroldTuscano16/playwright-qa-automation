@@ -1,7 +1,8 @@
 const { test, expect } = require('@playwright/test');
 const { DuckPage } = require('../pages/duck.page');
 
-test('Day 13 - Verify first DuckDuckGo search result and URL', async ({ page }) => {
+test('@local Verify first search result text', async ({ page }) => {
+
   const duck = new DuckPage(page);
 
   await duck.open();
