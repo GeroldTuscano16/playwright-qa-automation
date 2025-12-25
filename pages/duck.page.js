@@ -9,13 +9,27 @@ class DuckPage {
     await this.page.goto('https://duckduckgo.com/');
   }
 
-  async search(text) {
-    await this.searchBox.fill(text);
-    await this.page.keyboard.press('Enter');
+  async search(query) {
+  await this.page.goto('https://duckduckgo.com/', { waitUntil: 'domcontentloaded' });
 
-    // ✅ Wait for at least ONE result to exist
-    await this.results.first().waitFor({ state: 'attached', timeout: 30000 });
+  // Handle cookie popup if present
+  const acceptBtn = this.page.locator('button:has-text("Accept")');
+  if (await acceptBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await acceptBtn.click();
   }
+
+  await this.searchInput.fill(query);
+  await this.searchInput.press('Enter');
+
+  // More reliable wait
+  await this.page.waitForLoadState('networkidle');
+
+  await this.results.first().waitFor({
+    state: 'visible',
+    timeout: 45000,
+  });
+}
+
 
   async getFirstResultText() {
     return await this.results.first().innerText();

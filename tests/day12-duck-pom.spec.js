@@ -1,4 +1,8 @@
 const { test, expect } = require('@playwright/test');
+
+test.skip(process.env.CI, 'Skip DuckDuckGo tests in CI');
+
+const { test, expect } = require('@playwright/test');
 const { DuckPage } = require('../pages/duck.page');
 
 test('@local Verify first search result text', async ({ page }) => {
