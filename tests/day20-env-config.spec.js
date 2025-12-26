@@ -1,8 +1,10 @@
-const { defineConfig } = require('@playwright/test');
+const { test, expect } = require('@playwright/test');
 
-module.exports = defineConfig({
-  use: {
-    baseURL: 'https://www.saucedemo.com',
-    headless: true
-  }
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+});
+
+test('Day 20 - Environment config and reusable setup', async ({ page }) => {
+  await expect(page).toHaveURL(/saucedemo/);
+  await expect(page.locator('[data-test="login-button"]')).toBeVisible();
 });

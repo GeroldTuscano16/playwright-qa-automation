@@ -1,21 +1,20 @@
 const { test, expect } = require('@playwright/test');
 
 test('Day 15 - Multi-context and iframe exercise', async ({ browser }) => {
+  // First context
   const context1 = await browser.newContext();
   const page1 = await context1.newPage();
 
   await page1.goto('https://example.com');
   console.log('Page 1 title:', await page1.title());
 
-  // Proper popup handling
+  // Handle popup safely
   const [popup] = await Promise.all([
     page1.waitForEvent('popup'),
     page1.evaluate(() => window.open('https://www.w3schools.com'))
   ]);
 
-  // Wait for popup to fully load
   await popup.waitForLoadState('domcontentloaded');
-
   console.log('Popup URL:', popup.url());
   console.log('Popup title:', await popup.title());
 
@@ -25,4 +24,7 @@ test('Day 15 - Multi-context and iframe exercise', async ({ browser }) => {
 
   await page2.goto('https://example.com');
   console.log('Isolated page title:', await page2.title());
+
+  await context1.close();
+  await context2.close();
 });
