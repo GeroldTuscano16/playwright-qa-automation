@@ -1,30 +1,29 @@
 const { test, expect } = require('@playwright/test');
 
-test('Day 15 - Multi-context and iframe exercise', async ({ browser }) => {
-  // First context
-  const context1 = await browser.newContext();
-  const page1 = await context1.newPage();
+test('Day 15 - Multi-context and popup exercise', async ({ browser }) => {
+  // 1️⃣ Create a new context and page
+  const context = await browser.newContext();
+  const page1 = await context.newPage();
 
-  await page1.goto('https://example.com');
-  console.log('Page 1 title:', await page1.title());
+  // 2️⃣ Open the local stable page
+  await page1.goto(`file://${__dirname.replace(/\\/g, '/')}/../test-pages/popup-demo.html`);
 
-  // Handle popup safely
+  // 3️⃣ Handle popup safely
   const [popup] = await Promise.all([
     page1.waitForEvent('popup'),
-    page1.evaluate(() => window.open('https://www.w3schools.com'))
+    page1.locator('#open-popup').click(),
   ]);
 
-  await popup.waitForLoadState('domcontentloaded');
-  console.log('Popup URL:', popup.url());
+  // 4️⃣ Verify popup title
+  await popup.waitForLoadState();
   console.log('Popup title:', await popup.title());
+  expect(await popup.title()).toBe('Example Domain');
 
-  // Second isolated context
-  const context2 = await browser.newContext();
-  const page2 = await context2.newPage();
+  // 5️⃣ Optionally, interact with popup
+  // e.g., close it
+  await popup.close();
 
-  await page2.goto('https://example.com');
-  console.log('Isolated page title:', await page2.title());
-
-  await context1.close();
-  await context2.close();
+  // 6️⃣ Close main page
+  await page1.close();
+  await context.close();
 });

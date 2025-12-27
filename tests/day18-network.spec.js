@@ -1,8 +1,9 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 test('Day 18 - Mock API response', async ({ page }) => {
-  await page.route('**/users', route => {
-    route.fulfill({
+  // 1️⃣ Mock the API
+  await page.route('**/api/users', async route => {
+    await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
@@ -12,22 +13,30 @@ test('Day 18 - Mock API response', async ({ page }) => {
     });
   });
 
+  // 2️⃣ Load inline HTML (NO localhost)
   await page.setContent(`
-    <ul id="users"></ul>
-    <script>
-      fetch('/users')
-        .then(res => res.json())
-        .then(data => {
-          const ul = document.getElementById('users');
-          data.forEach(u => {
-            const li = document.createElement('li');
-            li.textContent = u.name;
-            ul.appendChild(li);
-          });
-        });
-    </script>
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <ul id="users"></ul>
+
+        <script>
+          fetch('/api/users')
+            .then(res => res.json())
+            .then(data => {
+              const ul = document.getElementById('users');
+              data.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user.name;
+                ul.appendChild(li);
+              });
+            });
+        </script>
+      </body>
+    </html>
   `);
 
+  // 3️⃣ Assertions
   const users = page.locator('#users li');
   await expect(users).toHaveCount(2);
   await expect(users.nth(0)).toHaveText('Gerold');

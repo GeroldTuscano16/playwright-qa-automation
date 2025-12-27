@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wikipedia Demo</title>
+</head>
+<body>
+  <h1>Wikipedia Search</h1>
+  <form id="search-form">
+    <input type="text" id="search-input" />
+    <button type="submit">Search</button>
+  </form>
+  <h2 id="result-heading"></h2>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const input = document.getElementById('search-input');
+    const result = document.getElementById('result-heading');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      // Just display the query in the heading
+      result.textContent = input.value || 'No query';
+    });
+  </script>
+</body>
+</html>
