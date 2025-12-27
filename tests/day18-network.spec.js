@@ -1,8 +1,8 @@
 const { test, expect } = require('@playwright/test');
 
-test.skip('Day 18 - Mock API response (CI safe)', async ({ page }) => {
-  // 1️⃣ Mock API route (absolute & deterministic)
-  await page.route('**/api/users', route => {
+test('Day 18 - Mock API response (stable & CI safe)', async ({ page }) => {
+  // 1️⃣ Mock the API call
+  await page.route('https://example.com/api/users', route =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -10,24 +10,17 @@ test.skip('Day 18 - Mock API response (CI safe)', async ({ page }) => {
         { name: 'Gerold' },
         { name: 'Alex' }
       ])
-    });
+    })
+  );
+
+  // 2️⃣ Trigger fetch manually (no UI, no file://)
+  const data = await page.evaluate(async () => {
+    const res = await fetch('https://example.com/api/users');
+    return res.json();
   });
 
-  // 2️⃣ Go to a stable blank page (no external JS)
-  await page.goto('about:blank');
-
-  // 3️⃣ Trigger request manually inside browser context
-  const response = await page.evaluate(async () => {
-    const res = await fetch('/api/users');
-    return {
-      status: res.status,
-      body: await res.json()
-    };
-  });
-
-  // 4️⃣ Assertions (pure & CI-safe)
-  expect(response.status).toBe(200);
-  expect(response.body).toHaveLength(2);
-  expect(response.body[0].name).toBe('Gerold');
-  expect(response.body[1].name).toBe('Alex');
+  // 3️⃣ Assertions (pure, deterministic)
+  expect(data.length).toBe(2);
+  expect(data[0].name).toBe('Gerold');
+  expect(data[1].name).toBe('Alex');
 });
