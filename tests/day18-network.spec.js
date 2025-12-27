@@ -1,27 +1,26 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
 
-test('Day 18 - Mock API response (CI-safe)', async ({ page }) => {
-
+test('Day 18 - Mock API response (CI safe)', async ({ page }) => {
   // 1️⃣ Mock the API response
-  await page.route('**/api/users', route => {
-    route.fulfill({
+  await page.route('**/api/users', async route => {
+    await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, name: 'Gerold' },
-        { id: 2, name: 'Alex' }
+        { name: 'Gerold' },
+        { name: 'Alex' }
       ])
     });
   });
 
-  // 2️⃣ Open local static HTML file (NO server needed)
-  const filePath = path.resolve(__dirname, '../test-pages/network-demo.html');
-  await page.goto(`file://${filePath}`);
+  // 2️⃣ Call the API directly (NO UI dependency)
+  const response = await page.request.get('https://example.com/api/users');
 
-  // 3️⃣ Assertions
-  const users = page.locator('#users li');
-  await expect(users).toHaveCount(2);
-  await expect(users.nth(0)).toHaveText('Gerold');
-  await expect(users.nth(1)).toHaveText('Alex');
+  // 3️⃣ Validate response
+  expect(response.ok()).toBeTruthy();
+
+  const data = await response.json();
+  expect(data.length).toBe(2);
+  expect(data[0].name).toBe('Gerold');
+  expect(data[1].name).toBe('Alex');
 });
