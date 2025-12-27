@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test('Day 18 - Mock API response (CI safe)', async ({ page }) => {
-  // 1️⃣ Mock the API response
-  await page.route('**/api/users', async route => {
-    await route.fulfill({
+  // 1️⃣ Mock API response
+  await page.route('**/api/users', route => {
+    route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
@@ -13,14 +13,33 @@ test('Day 18 - Mock API response (CI safe)', async ({ page }) => {
     });
   });
 
-  // 2️⃣ Call the API directly (NO UI dependency)
-  const response = await page.request.get('https://example.com/api/users');
+  // 2️⃣ Load deterministic inline HTML (NO external dependency)
+  await page.setContent(`
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <ul id="users"></ul>
 
-  // 3️⃣ Validate response
-  expect(response.ok()).toBeTruthy();
+        <script>
+          fetch('/api/users')
+            .then(res => res.json())
+            .then(data => {
+              const ul = document.getElementById('users');
+              data.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user.name;
+                ul.appendChild(li);
+              });
+            });
+        </script>
+      </body>
+    </html>
+  `);
 
-  const data = await response.json();
-  expect(data.length).toBe(2);
-  expect(data[0].name).toBe('Gerold');
-  expect(data[1].name).toBe('Alex');
+  // 3️⃣ Assert via browser context (CI safe)
+  const users = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('#users li')).map(li => li.textContent)
+  );
+
+  expect(users).toEqual(['Gerold', 'Alex']);
 });
