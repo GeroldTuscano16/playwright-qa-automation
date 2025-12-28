@@ -24,3 +24,6 @@ test('Day 18 - Mock API response (stable & CI safe)', async ({ page }) => {
   expect(data[0].name).toBe('Gerold');
   expect(data[1].name).toBe('Alex');
 });
+// NOTE:
+// This test uses a fully mocked API and local HTML page.
+// Designed to be deterministic and CI-safe.
